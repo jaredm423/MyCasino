@@ -60,7 +60,7 @@ public class TitleScreen extends ScreenAdapter {
                  }
                 if((int)touchX1 < screenX && screenX < (int)touchX1 + 200)
                 {
-                    if((int)touchY2 - 200 < screenY && screenY < (int)touchY2 - 100)
+                    if((int)touchY1 < screenY && screenY < (int)touchY1 + 100 )
                     {
                         game.setScreen(new BallDrop(game));
                         return true;
@@ -69,7 +69,7 @@ public class TitleScreen extends ScreenAdapter {
                 }
                 if((int)touchX1 < screenX && screenX < (int)touchX1 + 200)
                 {
-                    if((int)touchY3 - 200 < screenY && screenY < (int)touchY3 - 100)
+                    if((int)touchY1 + 200 < screenY && screenY < (int)touchY1 + 300)
                      {
                          game.setScreen(new BallDrop(game));
                          return true;
