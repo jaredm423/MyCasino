@@ -19,8 +19,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class TitleScreen extends ScreenAdapter {
     CasinoGame game;
-    String title = "Welcome to the Casino!";
-
     Camera camera;
     Viewport viewport;
 
@@ -28,17 +26,13 @@ public class TitleScreen extends ScreenAdapter {
     float touchX1 = 200;
     float touchY1 = 700;
     //button2
-    float touchX2 = 200;
     float touchY2 = 500;
     //button3
-    float touchX3 = 200;
     float touchY3 = 300;
-    //touch "radius"
-    float touchZone;
 
     public TitleScreen(CasinoGame game) {
         this.game = game;
-        camera = new OrthographicCamera(720, 1280);
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         viewport = new StretchViewport(game.screenWidth, game.screenHeight, camera);
     }
     @Override
@@ -62,7 +56,7 @@ public class TitleScreen extends ScreenAdapter {
                 {
                     if((int)touchY1 < screenY && screenY < (int)touchY1 + 100 )
                     {
-                        game.setScreen(new BallDrop(game));
+                        game.setScreen(new BlackJack(game));
                         return true;
                     }
 
@@ -83,28 +77,36 @@ public class TitleScreen extends ScreenAdapter {
 
     @Override
     public void render(float d){
+        String moneyCt = String.valueOf(game.playerMoney);
         Gdx.gl.glClearColor(1,0,0,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        GlyphLayout textSize = new GlyphLayout();
-        textSize.setText(game.font, title);
-        float x = game.screenWidth/2 - textSize.width/2;
-        float y = game.screenHeight/2 - textSize.height/2;
-
         game.batch.setProjectionMatrix(camera.combined);
-
-        game.batch.begin();
-        game.font.getData().setScale(5);
-        game.font.draw(game.batch, "Welcome to the Casino!", 0, 800);
-        game.batch.end();
+        camera.update();
 
         game.shapeRenderer.setColor(Color.WHITE);
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         game.shapeRenderer.rect(touchX1, touchY1, 300, 100);
-        game.shapeRenderer.rect(touchX2, touchY2, 300, 100);
-        game.shapeRenderer.rect(touchX3, touchY3, 300, 100);
+        game.shapeRenderer.rect(touchX1, touchY2, 300, 100);
+        game.shapeRenderer.rect(touchX1, touchY3, 300, 100);
         game.shapeRenderer.end();
 
+        game.batch.begin();
+
+        game.font.setColor(Color.WHITE);
+        game.font.getData().setScale(5);
+        game.font.draw(game.batch, "Welcome", -160, 500);
+        game.font.draw(game.batch, "to the Casino", -220, 400);
+
+        game.font.getData().setScale(3);
+        game.font.draw(game.batch, "Available funds: $" + moneyCt, -220, -500);
+
+        game.font.setColor(Color.BLACK);
+        game.font.getData().setScale(4);
+        game.font.draw(game.batch, "Ball Drop", -130, 140);
+        game.font.draw(game.batch, "BlackJack", -140, -60);
+
+        game.batch.end();
 
     }
 
