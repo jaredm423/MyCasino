@@ -31,7 +31,7 @@ public class CasinoGame extends Game {
 
 		playerMoney = 100;
 
-		setScreen(new TitleScreen(this));
+		setScreen(new TitleScreen(this, playerMoney));
 	}
 
 	@Override

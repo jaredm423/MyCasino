@@ -19,6 +19,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class TitleScreen extends ScreenAdapter {
     CasinoGame game;
+    int playerMoney;
     Camera camera;
     Viewport viewport;
 
@@ -30,8 +31,10 @@ public class TitleScreen extends ScreenAdapter {
     //button3
     float touchY3 = 300;
 
-    public TitleScreen(CasinoGame game) {
+    public TitleScreen(CasinoGame game, int playerMoney) {
         this.game = game;
+        this.playerMoney = playerMoney;
+
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         viewport = new StretchViewport(game.screenWidth, game.screenHeight, camera);
     }
@@ -47,7 +50,7 @@ public class TitleScreen extends ScreenAdapter {
                 {
                     if((int)touchY1 - 200 < screenY && screenY < (int)touchY1 - 100)
                     {
-                        game.setScreen(new BallDrop(game));
+                        game.setScreen(new BallDrop(game, playerMoney));
                         return true;
                     }
 
@@ -65,7 +68,7 @@ public class TitleScreen extends ScreenAdapter {
                 {
                     if((int)touchY1 + 200 < screenY && screenY < (int)touchY1 + 300)
                      {
-                         game.setScreen(new BallDrop(game));
+                         game.setScreen(new BallDrop(game, playerMoney));
                          return true;
                      }
 
@@ -77,7 +80,7 @@ public class TitleScreen extends ScreenAdapter {
 
     @Override
     public void render(float d){
-        String moneyCt = String.valueOf(game.playerMoney);
+        String moneyCt = String.valueOf(playerMoney);
         Gdx.gl.glClearColor(1,0,0,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 

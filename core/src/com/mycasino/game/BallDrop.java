@@ -5,26 +5,35 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2D;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import org.w3c.dom.css.Rect;
+
 public class BallDrop extends ScreenAdapter {
 
     CasinoGame game;
+    int playerMoney;
 
     Camera camera;
     Viewport viewport;
@@ -36,12 +45,13 @@ public class BallDrop extends ScreenAdapter {
     Body ballBody;
     Body dotBody;
     Body ground;
+    boolean Colliding;
 
     Box2DDebugRenderer debugRenderer;
 
-    public BallDrop(CasinoGame game) {
+    public BallDrop(CasinoGame game, int playerMoney) {
         this.game = game;
-        game.playerMoney = game.playerMoney - 10;
+        this.playerMoney = playerMoney - 10;
         Box2D.init();
         debugRenderer = new Box2DDebugRenderer();
 
@@ -57,22 +67,54 @@ public class BallDrop extends ScreenAdapter {
                 Gdx.graphics.getHeight() / 2);
 
         world = new World(new Vector2(0, -98), true);
+        contactSetup();
+        setupBall();
+        createDots();
 
+    }
+    private void contactSetup(){
+        world.setContactListener(new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+                if(contact.getFixtureA().getBody().getUserData() == "ballBody" &&
+                        contact.getFixtureB().getBody().getUserData() == "dotBody") {
+                    Colliding = true;
+                }
+
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+                //auto generated
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+                //auto generated
+            }
+        });
+    }
+    private void setupBall(){
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;
-        bodyDef.position.set(fallBall.getX(), fallBall.getY());
+        bodyDef.position.set(fallBall.getX(), fallBall.getY() + 400);
 
         ballBody = world.createBody(bodyDef);
+        ballBody.setUserData("ballBody");
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(fallBall.getWidth()/2, fallBall.getHeight());
+        shape.setAsBox(fallBall.getWidth()/2, fallBall.getHeight() / 2);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1f;
 
         Fixture fixture = ballBody.createFixture(fixtureDef);
-        //end reference code for constructor
         shape.dispose();
     }
     //phase 2
@@ -94,7 +136,24 @@ public class BallDrop extends ScreenAdapter {
         }
     }
     private void createDots(){
+        if(dotBody != null) world.destroyBody(dotBody);
 
+        BodyDef bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.StaticBody;
+
+        FixtureDef fixtureDef = new FixtureDef();
+
+        PolygonShape shape = new PolygonShape();
+        shape.setAsBox(10, 10);
+
+        fixtureDef.shape = shape;
+
+        dotBody = world.createBody(bodyDef);
+        dotBody.createFixture(fixtureDef);
+        dotBody.setTransform(350,500,0);
+        dotBody.setUserData("dotBody");
+
+        shape.dispose();
     }
     private void createGround(){
         if(ground != null) world.destroyBody(ground);
@@ -111,7 +170,7 @@ public class BallDrop extends ScreenAdapter {
 
         ground = world.createBody(bodyDef);
         ground.createFixture(fixtureDef);
-        ground.setTransform(0,0,0);
+        ground.setTransform(0,410,0);
 
         shape.dispose();
     }
@@ -120,6 +179,10 @@ public class BallDrop extends ScreenAdapter {
         Gdx.gl.glClearColor(0,0,1,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stepWorld();
+        if(Colliding){
+            ballBody.applyForce((float)Math.random() * 10,100, ballBody.getPosition().x, ballBody.getPosition().y, true);
+        }
+        game.font.setColor(Color.WHITE);
 
         game.shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         //this is the base rectangle that will feature multipliers...
@@ -130,12 +193,12 @@ public class BallDrop extends ScreenAdapter {
 
         game.batch.begin();
         fallBall.setPosition(ballBody.getPosition().x, ballBody.getPosition().y);
+
         drawSprite();
         backgroundSetup();
         game.batch.end();
-
-
-        //debugRenderer.render(world, camera.combined);
+        //unccoment for debugMode
+        debugRenderer.render(world, camera.combined);
     }
     @Override
     public void show()
@@ -145,7 +208,7 @@ public class BallDrop extends ScreenAdapter {
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                  if(250 < screenX && screenX < 450){
                    if(1025 < screenY && screenY < 1075) {
-                       game.setScreen(new BallDrop(game));
+                       game.setScreen(new BallDrop(game, playerMoney));
                        return true;
                    }
                  }
@@ -154,14 +217,15 @@ public class BallDrop extends ScreenAdapter {
             });
     }
     private void backgroundSetup(){
-        String moneyCt = String.valueOf(game.playerMoney);
+        String moneyCt = String.valueOf(playerMoney);
         game.font.draw(game.batch,"BallDrop!",  250, 1200 );
         game.font.getData().setScale(3);
         game.font.draw(game.batch, "Available funds: $" + moneyCt, 140, 175);
     }
     //this will be used in onclick when button clicked, draw ball and make it fall - simple stuff
     private void drawSprite(){
-        fallBall.setPosition(fallBall.getX(), fallBall.getY() + 400);
+        fallBall.setPosition(fallBall.getX() - 10, fallBall.getY() - 10);
+
         fallBall.draw(game.batch);
     }
     @Override
